@@ -1,0 +1,21 @@
+﻿@page "/Logout"
+@model LogoutModel
+@{
+    ViewData["Title"] = "Cerrar sesion";
+}
+
+<header>
+    <h1 class="text-center">@ViewData["Title"]</h1>
+    @{
+        if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+                <center><button type="submit" class="nav-link btn btn-link text-dark">Haga click aqui para cerrar la sesion</button></center>
+            </form>
+        }
+        else
+        {
+            <p>Tu sesion a sido cerrada correctamente del sistema.</p>
+        }
+    }
+</header>

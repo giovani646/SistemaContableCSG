@@ -1,0 +1,459 @@
+﻿@model SistemaContableCSG.ViewModels.UsuariosIndex
+@using SistemaContableCSG.Permissions
+
+@{
+    ViewData["Title"] = "Gestion de usuarios";
+}
+
+@section Css{
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
+}
+
+<div class="d-flex justify-content-center">
+    <div id="loader" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+</div>
+
+<h3>Usuarios</h3>
+<hr class="mt-0"/>
+
+@if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Create)).Succeeded)
+{
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ModalCrear">
+        <i class="fa-solid fa-user-plus"></i> Crear Usuario
+    </button>
+    <br />
+    <br />
+}
+<table class="table table-bordered text-md-nowrap table-dark dt-responsive dt-bootstrap5 table-striped table-hover" id="datatable" style="width:100%">
+    <thead>
+        <tr>
+            <th class="text-center align-middle">Nombre</th>
+            <th class="text-center align-middle">Correo Electronico</th>
+            <th class="text-center align-middle">Numero de telefono</th>
+            @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Edit)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Delete)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.BlockAndUnclock)).Succeeded)
+            {
+                <th class="text-center align-middle">Acciones</th>
+            }
+        </tr>
+    </thead>
+</table>
+
+<!-- ModalCrear -->
+<div class="modal" id="ModalCrear" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Creacion de usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearForm('FormUserCreate')"></button>
+            </div>
+			<div class="modal-body">
+                <div id="PasswordError" class="alert alert-danger alert-dismissible fade show" role="alert" hidden>
+                    <span>Ocurrio un error. No se creo el usuario correctamente, considere que:</span>
+                    <ul>
+                        <li>
+                            Las contraseñas deben tener al menos un carácter no alfanumérico
+                        </li>
+                        <li>
+                            Las contraseñas deben tener al menos un dígito ('0'-'9')
+                        </li>
+                        <li>
+                            Las contraseñas deben tener al menos una mayúscula ('A'-'Z')
+                        </li>
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+				<form id="FormUserCreate" method="post">
+					<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-floating">
+						<input asp-for="Nombre" class="form-control" placeholder=" "/>
+                        <label asp-for="Nombre" class="control-label"></label>
+						<span asp-validation-for="Nombre" class="text-danger"></span>
+					</div>
+					<br />
+					<div class="form-floating">
+                        <input asp-for="Email" type="email" class="form-control" placeholder=" " />
+                        <label asp-for="Email" class="control-label"></label>
+						<span asp-validation-for="Email" class="text-danger"></span>
+					</div>
+					<br />
+                    <div class="form-floating">
+                        <input asp-for="PhoneNumber" class="form-control" placeholder=" " />
+                        <label asp-for="PhoneNumber" class="control-label"></label>
+						<span asp-validation-for="PhoneNumber" class="text-danger"></span>
+					</div>
+					<br />
+					<div class="form-floating">
+                        <input asp-for="Password" type="password" class="form-control" placeholder=" " />
+                        <label asp-for="Password" class="control-label"></label>
+						<span asp-validation-for="Password" class="text-danger"></span>
+					</div>
+					<br />
+					<div class="form-floating">
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder=" " />
+                        <label asp-for="ConfirmPassword" class="control-label"></label>
+						<span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+					</div>
+					<br />
+					<div class="form-group">
+                        <span>Roles</span>
+                        <hr class="mt-0 mb-1"/>
+						@foreach (var item in Model.Roles)
+						{
+							<input class="form-check-input" type="checkbox" value="@item.Name" name="roles">
+							<label for="roles" class="form-check-label">@item.Name</label>
+						}
+					</div>
+				</form>
+			</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearForm('FormUserCreate')"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+                <button type="submit" form="FormUserCreate" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Crear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ModalEditar -->
+<div class="modal" id="ModalEditar" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Edicion de usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearForm('FormUserEdit')"></button>
+            </div>
+            <div class="modal-body">
+                <form id="FormUserEdit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-floating">
+                        <input id="NombreEdit" asp-for="Nombre" class="form-control" placeholder=" "/>
+                        <label asp-for="Nombre" class="control-label"></label>
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <input id="EmailEdit" asp-for="Email" type="email" class="form-control" placeholder=" "/>
+                        <label asp-for="Email" class="control-label"></label>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <input id="PhoneNumberEdit" asp-for="PhoneNumber" type="text" class="form-control" placeholder=" " />
+                        <label asp-for="PhoneNumber" class="control-label"></label>
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>                   
+                    </div>
+                    <br />
+                    <div class="form-group">
+                        <span>Roles</span>
+                        <hr class="mt-0 mb-1"/>
+                        @foreach (var item in Model.Roles)
+                        {
+                            <input id="@item.Name-Check" class="form-check-input" type="checkbox" value="@item.Name" name="roles">
+                            <label for="roles" class="form-check-label">@item.Name</label>
+                        }
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearForm('FormUserEdit')"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+                <button type="submit" form="FormUserEdit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <partial name="../shared/_ValidationScriptsPartial" />
+
+    <script>
+         $('#datatable').DataTable({
+                "columnDefs": [
+                    { "className": "dt-center align-middle", "targets": "_all" }
+                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Edit)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Delete)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.BlockAndUnclock)).Succeeded)
+                    {
+                        @:,{'targets': [3], 'orderable': false}
+                    }
+                ],
+                "scrollX": true,
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    "url": "@Url.Action("usuariosData","Usuarios")",
+                    "type":"POST",
+                    "datatype":"json"
+                },
+                "columns":[
+                    {"data":"nombre"},
+                    {"data":"email"},
+                    {"data":"phoneNumber"}
+                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Edit)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Delete)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.BlockAndUnclock)).Succeeded)
+                    {
+                        <text>
+                            ,{
+                                "data": null,
+                                "render": function (data) {
+                                    var editarButton = '';
+                                    var eliminarButton = '';
+                                    var bloquearButton = '';
+                                    var desbloquearButton = '';
+    
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Edit)).Succeeded) {
+                                        @:editarButton = `<button class="btn btn-warning" onclick="consultarUsuario('${data.id}')"><i class="fa-solid fa-pen-to-square"></i> Editar</button> `;
+                                    }
+    
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.Delete)).Succeeded) {
+                                        @:eliminarButton = `<button class="btn btn-danger" onclick="eliminarUsuario('${data.id}')"><i class="fa-solid fa-trash-can"></i> Eliminar</button> `;
+                                    }
+    
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarUsuarios.BlockAndUnclock)).Succeeded) {
+                                        @:bloquearButton = `<button class="btn btn-primary" onclick="bloquearUsuario('${data.id}', 1)"><i class="fa-solid fa-lock"></i> Bloquear</button> `;
+                                        @:desbloquearButton = `<button class="btn btn-success" onclick="bloquearUsuario('${data.id}', 2)"><i class="fa-solid fa-lock-open"></i> Desbloquear</button>`;
+                                    }
+    
+                                    if (data.lockoutEnd === null) {
+                                        return editarButton + eliminarButton + bloquearButton;
+                                    } else {
+                                        return editarButton + eliminarButton + desbloquearButton;
+                                    }
+                                }
+                            }
+                        </text>
+                    }
+                ],
+                "language":{
+                    "decimal":        ".",
+                    "emptyTable":     "No hay datos disponibles en la tabla",
+                    "info":           "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    "infoEmpty":      "Mostrando del 0 al 0 de un todal de 0 registros",
+                    "infoFiltered":   "(Filtrado de _MAX_ registros totales)",
+                    "lengthMenu":     "Mostrar _MENU_ registros por página",
+                    "loadingRecords": "Cargando...",
+                    "processing":     "",
+                    "search":         "Buscar:",
+                    "zeroRecords":    "No se encontraron resultados",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    },
+                    "aria": {
+                        "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                        "sortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                    "select": {
+                        "rows": {
+                            "1": "1 fila seleccionada",
+                            "_": "%d filas seleccionadas"
+                        }
+                    },
+                }
+          });
+
+            function clearForm(form){
+                var formulario = document.getElementById(form);
+                formulario.reset();
+                $("input").removeClass('is-invalid');
+                $("input").removeClass('is-valid');
+            }
+
+             $(document).ready(function () {
+                $("#FormUserCreate").submit(function (e) {
+                    e.preventDefault();
+
+                    if ($("#FormUserCreate").valid()) {
+                        var formData = $(this).serialize();
+
+                        $.ajax({
+                            url: "@Url.Action("Create","Usuarios")",
+                            type: "POST",
+                            data: formData,
+                            beforeSend: function () {
+                                $("#loader").css('visibility', 'visible');
+                                $('#loader').show();
+                            },
+                            complete: function () {
+                                $('#loader').fadeOut("slow");
+                            },
+                            success: function (data) {
+
+                                if (data.status === "success"){
+                                    $("#ModalCrear").modal("hide");
+                                    clearForm("FormUserCreate");
+                                    mostrarAlert(data.msj, data.status);
+                                    $('#datatable').DataTable().ajax.reload();
+                                }
+                                else{
+                                    if (data.msj === "Error en la contraseña") {
+                                        $("#PasswordError").removeAttr("hidden");
+                                    }
+                                    mostrarAlert(data.msj, data.status);
+                                }
+                            },
+                            error: function (xhr) {
+                                if (xhr.status === 403) {
+                                    window.location.href = "/AccesoDenegado";
+                                }
+                            }
+                        });
+                    }
+                });
+             });
+
+            var userId;
+
+            function consultarUsuario(id){
+                userId = id;
+                $.ajax({
+                    url: "@Url.Action("editarData","Usuarios")",
+                    type: "GET",
+                    data: {
+                        'IdUsuario': id,
+                    },
+                    beforeSend: function () {
+                        $("#loader").css('visibility', 'visible');
+                        $('#loader').show();
+                    },
+                    complete: function () {
+                        $('#loader').fadeOut("slow");
+                    },
+                    success: function (data) {
+
+                        if(data.usuario != null){
+
+                            $("#ModalEditar").modal("show");
+
+                            document.getElementById("NombreEdit").value = data.usuario.nombre;
+                            document.getElementById("EmailEdit").value = data.usuario.email;
+                            document.getElementById("PhoneNumberEdit").value = data.usuario.phoneNumber;
+
+                            for (var i = 0; i <= data.roles.length - 1; i++) {
+                                 $('#' + data.roles[i] + '-Check').prop('checked', true);
+                            }
+                        }
+                        else{
+                            $("#ModalEditar").modal("hide");
+                            let msj = "Error.El usuario al que intenta acceder ya no se encuentra disponible. Posiblemente el usuario ya a sido eliminado por otro usuario. Se actualizara la lista de usuarios en la tabla";
+                            let status = "error";
+                            mostrarAlert(msj,status);
+                            $('#datatable').DataTable().ajax.reload();
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 403) {
+                            window.location.href = "/AccesoDenegado";
+                        }
+                    }
+                });
+            }
+
+            $(document).ready(function () {
+                $("#FormUserEdit").submit(function (e) {
+                    e.preventDefault();
+
+                    if ($("#FormUserEdit").valid()) {
+                        var formData = $(this).serialize();
+
+                        $.ajax({
+                            url: "@Url.Action("Edit","Usuarios")",
+                            type: "PUT",
+                            data: formData + "&id=" + userId,
+                            beforeSend: function () {
+                                $("#loader").css('visibility', 'visible');
+                                $('#loader').show();
+                            },
+                            complete: function () {
+                                $('#loader').fadeOut("slow");
+                            },
+                            success: function (data) {
+                                $("#ModalEditar").modal("hide");
+                                clearForm("FormUserEdit");
+                                mostrarAlert(data.msj, data.status);
+                                $('#datatable').DataTable().ajax.reload();
+                            },
+                            error: function (xhr) {
+                                if (xhr.status === 403) {
+                                    window.location.href = "/AccesoDenegado";
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            function eliminarUsuario(id){
+                Swal.fire({
+                    title: 'Estas seguro de continuar?',
+                    text: "Esta accion no podra revertirse!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    confirmButtonText: 'Si, eliminar!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "@Url.Action("Delete","Usuarios")",
+                            type: "DELETE",
+                            data: { "id": id },
+                            beforeSend: function () {
+                                $("#loader").css('visibility', 'visible');
+                                $('#loader').show();
+                            },
+                            complete: function () {
+                                $('#loader').fadeOut("slow");
+                            },
+                            success: function (data) {
+                                $('#datatable').DataTable().ajax.reload();
+
+                                mostrarAlert(data.msj, data.status);
+                            },
+                            error: function (xhr) {
+                                if (xhr.status === 403) {
+                                    window.location.href = "/AccesoDenegado";
+                                }
+                            }
+                        });
+                    }
+                })
+            }
+
+            function bloquearUsuario(id,operacion){
+                $.ajax({
+                    url: "@Url.Action("Bloquear","Usuarios")",
+                    type: "POST",
+                    data: { "id": id, "operacion": operacion },
+                    beforeSend: function () {
+                        $("#loader").css('visibility', 'visible');
+                        $('#loader').show();
+                    },
+                    complete: function () {
+                        $('#loader').fadeOut("slow");
+                    },
+                    success: function (data) {
+                        $('#datatable').DataTable().ajax.reload();
+
+                        mostrarAlert(data.msj, data.status);
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 403) {
+                            window.location.href = "/AccesoDenegado";
+                        }
+                    }
+                });
+            }
+
+            function mostrarAlert(msj,status){
+                Swal.fire({
+                    text: msj,
+                    icon: status,
+                    showCancelButton: false
+                })
+            }
+    </script>
+}
