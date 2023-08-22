@@ -1,5 +1,7 @@
 ﻿@using SistemaContableCSG.Permissions
-
+@{
+    var periodoIniciado = PeriodoHelper.IsPeriodoIniciado();
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,10 +38,43 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Roles" asp-action="Index"><i class="fa-solid fa-clipboard-list"></i> Gestionar Roles</a>
                             </li>
                         }
-
-                        <li class="nav-item">
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarPeriodos.View)).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Periodo" asp-action="Index"><i class="fa-solid fa-calendar-days"></i> Periodos</a>
+                            </li>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.View)).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="Index"><i class="fa-solid fa-money-check"></i> Gestionar cuentas</a>
+                            </li>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarAsientos.View)).Succeeded && periodoIniciado == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Asiento" asp-action="Index"><i class="fa-solid fa-money-bill-transfer"></i> Gestionar asientos</a>
+                            </li>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.View)).Succeeded)
+                        {
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle text-dark" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre><i class="fa-solid fa-book"></i> Generar</a>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.CatalogoDeCuentas)).Succeeded)
+                                    {
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Periodo" asp-action="Index">Catalogo de cuentas</a>
+                                    }
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.BalanceGeneral)).Succeeded && periodoIniciado == false)
+                                    {
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Periodo" asp-action="Index">Balance general</a>
+                                    }
+                                </div>
+                            </li>
+                        }
+                        @*<li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        </li>*@
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

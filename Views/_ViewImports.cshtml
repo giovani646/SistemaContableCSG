@@ -1,5 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Authorization;
 @using SistemaContableCSG
 @using SistemaContableCSG.Models
+@using SistemaContableCSG.Permissions
+@using SistemaContableCSG.Data
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @inject IAuthorizationService AuthorizationService
+@inject IPeriodoHelper PeriodoHelper

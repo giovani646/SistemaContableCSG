@@ -5,10 +5,46 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SistemaContableCSG.Migrations
 {
-    public partial class inicial : Migration
+    public partial class Inicial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Cuenta",
+                columns: table => new
+                {
+                    Codigo = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Clasificacion = table.Column<int>(type: "int", nullable: false),
+                    Tipo = table.Column<int>(type: "int", nullable: false),
+                    TipoSaldo = table.Column<int>(type: "int", nullable: false),
+                    CuentasCodigo = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Cuenta", x => x.Codigo);
+                    table.ForeignKey(
+                        name: "FK_Cuenta_Cuenta_CuentasCodigo",
+                        column: x => x.CuentasCodigo,
+                        principalTable: "Cuenta",
+                        principalColumn: "Codigo");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Periodo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FechaInicial = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaFinal = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Iniciado = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Periodo", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Role",
                 columns: table => new
@@ -50,6 +86,26 @@ namespace SistemaContableCSG.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Asiento",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Glosa = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PeriodoId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Asiento", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Asiento_Periodo_PeriodoId",
+                        column: x => x.PeriodoId,
+                        principalTable: "Periodo",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RoleClaims",
                 columns: table => new
                 {
@@ -68,6 +124,25 @@ namespace SistemaContableCSG.Migrations
                         principalTable: "Role",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Bitacora",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Accion = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Bitacora", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Bitacora_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -155,6 +230,47 @@ namespace SistemaContableCSG.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Transaccion",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Debe = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Haber = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    AsientoId = table.Column<int>(type: "int", nullable: true),
+                    CuentaCodigo = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Transaccion", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Transaccion_Asiento_AsientoId",
+                        column: x => x.AsientoId,
+                        principalTable: "Asiento",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Transaccion_Cuenta_CuentaCodigo",
+                        column: x => x.CuentaCodigo,
+                        principalTable: "Cuenta",
+                        principalColumn: "Codigo");
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Asiento_PeriodoId",
+                table: "Asiento",
+                column: "PeriodoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bitacora_UserId",
+                table: "Bitacora",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cuenta_CuentasCodigo",
+                table: "Cuenta",
+                column: "CuentasCodigo");
+
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 table: "Role",
@@ -166,6 +282,16 @@ namespace SistemaContableCSG.Migrations
                 name: "IX_RoleClaims_RoleId",
                 table: "RoleClaims",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transaccion_AsientoId",
+                table: "Transaccion",
+                column: "AsientoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transaccion_CuentaCodigo",
+                table: "Transaccion",
+                column: "CuentaCodigo");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
@@ -198,7 +324,13 @@ namespace SistemaContableCSG.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Bitacora");
+
+            migrationBuilder.DropTable(
                 name: "RoleClaims");
+
+            migrationBuilder.DropTable(
+                name: "Transaccion");
 
             migrationBuilder.DropTable(
                 name: "UserClaims");
@@ -213,10 +345,19 @@ namespace SistemaContableCSG.Migrations
                 name: "UserTokens");
 
             migrationBuilder.DropTable(
+                name: "Asiento");
+
+            migrationBuilder.DropTable(
+                name: "Cuenta");
+
+            migrationBuilder.DropTable(
                 name: "Role");
 
             migrationBuilder.DropTable(
                 name: "User");
+
+            migrationBuilder.DropTable(
+                name: "Periodo");
         }
     }
 }

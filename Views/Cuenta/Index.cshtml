@@ -1,0 +1,477 @@
+﻿@model SistemaContableCSG.ViewModels.CuentaIndex
+
+@{
+    ViewData["Title"] = "Gestion de cuentas";
+}
+
+@section Css{
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
+}
+
+<div class="d-flex justify-content-center">
+    <div id="loader" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+</div>
+
+<h3>Cuentas</h3>
+<hr class="mt-0" />
+
+@if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Create)).Succeeded)
+{
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ModalCrear">
+        <i class="fa-solid fa-pen-ruler"></i> Crear Cuenta
+    </button>
+    <br />
+    <br />
+}
+<table class="table table-bordered text-md-nowrap table-dark table-striped table-hover" id="datatable" style="width:100%">
+    <thead>
+        <tr>
+            <th class="text-center align-middle">Codigo</th>
+            <th class="text-center align-middle">Nombre</th>
+            <th class="text-center align-middle">Clasificacion</th>
+            <th class="text-center align-middle">Tipo</th>
+            <th class="text-center align-middle">Tipo de saldo</th>
+            @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Edit)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Delete)).Succeeded)
+            {
+                <th class="text-center align-middle">Acciones</th>
+            }
+        </tr>
+    </thead>
+</table>
+
+<!-- ModalCrear -->
+<div class="modal" id="ModalCrear" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Creacion de cuenta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearForm('FormCuentaCreate')"></button>
+            </div>
+            <div class="modal-body">
+                <form id="FormCuentaCreate" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-floating">
+                        <input asp-for="Cuenta.Codigo" class="form-control" placeholder=" " />
+                        <label asp-for="Cuenta.Codigo" class="control-label"></label>
+                        <span asp-validation-for="Cuenta.Codigo" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <input asp-for="Cuenta.Nombre" class="form-control" placeholder=" " />
+                        <label asp-for="Cuenta.Nombre" class="control-label"></label>
+                        <span asp-validation-for="Cuenta.Nombre" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select asp-for="Cuenta.Clasificacion" class="form-select" aria-label="Default select example">
+                            <option value="0">Clase</option>
+                            <option value="1">Grupo</option>
+                            <option value="2">Cuenta</option>
+                            <option value="3">Subcuenta</option>
+                        </select>
+                        <label asp-for="Cuenta.Clasificacion" class="control-label">Clasificacion de la cuenta</label>
+                        <span asp-validation-for="Cuenta.Clasificacion" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select asp-for="CuentaPadre" class="form-select" asp-items="@Model.Cuentas">
+                            <option disabled selected>Seleccione una cuenta</option>
+                        </select>
+                        <label asp-for="CuentaPadre" class="control-label">Cuenta padre</label>
+                        <span asp-validation-for="CuentaPadre" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select asp-for="Cuenta.Tipo" class="form-select" aria-label="Default select example">
+                            <option value="0">Activos</option>
+                            <option value="1">Pasivos</option>
+                            <option value="2">Capital</option>
+                            <option value="3">Ingresos</option>
+                            <option value="4">Costos</option>
+                            <option value="5">Gastos</option>
+                        </select>
+                        <label asp-for="Cuenta.Tipo" class="control-label">Tipo de cuenta</label>
+                        <span asp-validation-for="Cuenta.Tipo" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select asp-for="Cuenta.TipoSaldo" class="form-select" aria-label="Default select example">
+                            <option value="0">Deudora</option>
+                            <option value="1">Acreedora</option>
+                        </select>
+                        <label asp-for="Cuenta.TipoSaldo" class="control-label">Tipo de saldo</label>
+                        <span asp-validation-for="Cuenta.TipoSaldo" class="text-danger"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearForm('FormCuentaCreate')"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+                <button type="submit" form="FormCuentaCreate" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Crear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ModalEditar -->
+<div class="modal" id="ModalEditar" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Edicion de cuenta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearForm('FormCuentaEdit')"></button>
+            </div>
+            <div class="modal-body">
+                <form id="FormCuentaEdit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-floating">
+                        <input id="NombreEdit" asp-for="Cuenta.Nombre" class="form-control" placeholder=" " />
+                        <label asp-for="Cuenta.Nombre" class="control-label"></label>
+                        <span asp-validation-for="Cuenta.Nombre" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select id="ClasificacionSelect" asp-for="Cuenta.Clasificacion" class="form-select" aria-label="Default select example">
+                            <option value="0">Clase</option>
+                            <option value="1">Grupo</option>
+                            <option value="2">Cuenta</option>
+                            <option value="3">Subcuenta</option>
+                        </select>
+                        <label asp-for="Cuenta.Clasificacion" class="control-label">Clasificacion de la cuenta</label>
+                        <span asp-validation-for="Cuenta.Clasificacion" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select id="CuentasSelect" asp-for="CuentaPadre" class="form-select" asp-items="@Model.Cuentas">
+                            <option disabled selected>Seleccione una cuenta</option>
+                        </select>
+                        <label asp-for="CuentaPadre" class="control-label">Cuenta padre</label>
+                        <span asp-validation-for="CuentaPadre" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select id="TipoSelect" asp-for="Cuenta.Tipo" class="form-select" aria-label="Default select example">
+                            <option value="0">Activos</option>
+                            <option value="1">Pasivos</option>
+                            <option value="2">Capital</option>
+                            <option value="3">Ingresos</option>
+                            <option value="4">Costos</option>
+                            <option value="5">Gastos</option>
+                        </select>
+                        <label asp-for="Cuenta.Tipo" class="control-label">Tipo de cuenta</label>
+                        <span asp-validation-for="Cuenta.Tipo" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <select id="TipoSaldoSelect" asp-for="Cuenta.TipoSaldo" class="form-select" aria-label="Default select example">
+                            <option value="0">Deudora</option>
+                            <option value="1">Acreedora</option>
+                        </select>
+                        <label asp-for="Cuenta.TipoSaldo" class="control-label">Tipo de saldo</label>
+                        <span asp-validation-for="Cuenta.TipoSaldo" class="text-danger"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearForm('FormCuentaEdit')"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+                <button type="submit" form="FormCuentaEdit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <partial name="../shared/_ValidationScriptsPartial" />
+
+    <script>
+        $('#datatable').DataTable({
+            "columnDefs": [
+                { "className": "dt-center align-middle", "targets": "_all" }
+                @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Edit)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Delete)).Succeeded)
+                {
+                    @:,{ 'targets': [5], 'orderable': false }
+                }
+            ],
+            "scrollX": true,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "@Url.Action("cuentasData","Cuenta")",
+                "type": "POST",
+                "datatype": "json"
+            },
+            "columns": [
+                { "data": "codigo" },
+                { "data": "nombre" },
+                {
+                    "data": null,
+                    "render": function (data) {
+                        switch (data.clasificacion) {
+                            case 0:
+                                return "Clase";
+                                break;
+                            case 1:
+                                return "Grupo";
+                                break;
+                            case 2:
+                                return "Cuenta";
+                                break;
+                            case 3:
+                                return "Subcuenta";
+                                break;
+                        }
+                    }
+                },
+                {
+                    "data": null,
+                    "render": function (data) {
+                        switch (data.tipo) {
+                            case 0:
+                                return "Activos";
+                                break;
+                            case 1:
+                                return "Pasivos";
+                                break;
+                            case 2:
+                                return "Capital";
+                                break;
+                            case 3:
+                                return "Ingresos";
+                                break;
+                            case 4:
+                                return "Costos";
+                                break;
+                            case 5:
+                                return "Gastos";
+                                break;
+                        }
+                    }
+                },
+                {
+                    "data": null,
+                    "render": function (data) {
+                        switch (data.tipoSaldo) {
+                            case 0:
+                                return "Deudora";
+                                break;
+                            case 1:
+                                return "Acreedora";
+                                break;
+                        }
+                    }
+                }
+                @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Edit)).Succeeded || (await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Delete)).Succeeded)
+                {
+                    <text>
+                        ,{
+                            "data": null,
+                            "render": function (data) {
+                                var editarButton = '';
+                                var eliminarButton = '';
+                                @if (((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Edit)).Succeeded))
+                                {
+                                    @:editarButton = `<button class="btn btn-warning" onclick="consultarCuenta('${data.codigo}')"><i class="fa-solid fa-pen-to-square"></i> Editar</button> `;
+                                }
+                                @if (((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarCuentas.Delete)).Succeeded))
+                                {
+                                    @:eliminarButton = `<button class="btn btn-danger" onclick="eliminarCuenta('${data.codigo}')"><i class="fa-solid fa-trash-can"></i> Eliminar</button> `;
+                                }
+                                return editarButton + eliminarButton;
+                            }
+                        }
+                    </text>
+                }
+            ],
+            "language": {
+                "decimal": ".",
+                "emptyTable": "No hay datos disponibles en la tabla",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "Mostrando del 0 al 0 de un todal de 0 registros",
+                "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "loadingRecords": "Cargando...",
+                "processing": "",
+                "search": "Buscar:",
+                "zeroRecords": "No se encontraron resultados",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                },
+                "aria": {
+                    "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "select": {
+                    "rows": {
+                        "1": "1 fila seleccionada",
+                        "_": "%d filas seleccionadas"
+                    }
+                },
+            }
+        });
+
+        function clearForm(form) {
+            var formulario = document.getElementById(form);
+            formulario.reset();
+            $("input").removeClass('is-invalid');
+            $("input").removeClass('is-valid');
+        }
+
+        $(document).ready(function () {
+            $("#FormCuentaCreate").submit(function (e) {
+                e.preventDefault();
+
+                if ($("#FormCuentaCreate").valid()) {
+                    var formData = $(this).serialize();
+                    
+                    $.ajax({
+                        url: "@Url.Action("Create","Cuenta")",
+                        type: "POST",
+                        data: formData,
+                        beforeSend: function () {
+                            $("#loader").css('visibility', 'visible');
+                            $('#loader').show();
+                        },
+                        complete: function () {
+                            $('#loader').fadeOut("slow");
+                        },
+                        success: function (data) {
+                            $("#ModalCrear").modal("hide");
+                            clearForm("FormCuentaCreate");
+                            mostrarAlert(data.msj, data.status);
+                            location.reload();
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 403) {
+                                window.location.href = "/AccesoDenegado";
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        var cuentaId;
+
+        function consultarCuenta(id) {
+            cuentaId = id;
+            $.ajax({
+                url: "@Url.Action("editarData","Cuenta")",
+                type: "GET",
+                data: {
+                    'IdCuenta': id,
+                },
+                beforeSend: function () {
+                    $("#loader").css('visibility', 'visible');
+                    $('#loader').show();
+                },
+                complete: function () {
+                    $('#loader').fadeOut("slow");
+                },
+                success: function (data) {
+                    $("#ModalEditar").modal("show");
+                    document.getElementById("NombreEdit").value = data.cuenta.nombre;
+                    document.getElementById("ClasificacionSelect").selectedIndex = data.cuenta.clasificacion;
+                    if (data.cuenta.cuentas != null) {
+                        $("#CuentasSelect").val(data.cuenta.cuentas.codigo);
+                    }
+                    else {
+                        document.getElementById("CuentasSelect").selectedIndex = 0;
+                    }
+                    document.getElementById("TipoSelect").selectedIndex = data.cuenta.tipo;
+                    document.getElementById("TipoSaldoSelect").selectedIndex = data.cuenta.tipoSaldo;
+                },
+                error: function (xhr) {
+                    if (xhr.status === 403) {
+                        window.location.href = "/AccesoDenegado";
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $("#FormCuentaEdit").submit(function (e) {
+                e.preventDefault();
+
+                if ($("#FormCuentaEdit").valid()) {
+                    var formData = $(this).serialize();
+
+                    $.ajax({
+                        url: "@Url.Action("Edit","Cuenta")",
+                        type: "PUT",
+                        data: formData + "&id=" + cuentaId,
+                        beforeSend: function () {
+                            $("#loader").css('visibility', 'visible');
+                            $('#loader').show();
+                        },
+                        complete: function () {
+                            $('#loader').fadeOut("slow");
+                        },
+                        success: function (data) {
+                            $("#ModalEditar").modal("hide");
+                            clearForm("FormCuentaEdit");
+                            mostrarAlert(data.msj, data.status);
+                            location.reload();
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 403) {
+                                window.location.href = "/AccesoDenegado";
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        function eliminarCuenta(id) {
+            Swal.fire({
+                title: 'Estas seguro de continuar?',
+                text: "Esta accion no podra revertirse!",
+                icon: 'warning',
+                showCancelButton: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                confirmButtonText: 'Si, eliminar!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "@Url.Action("Delete","Cuenta")",
+                        type: "DELETE",
+                        data: { "id": id },
+                        beforeSend: function () {
+                            $("#loader").css('visibility', 'visible');
+                            $('#loader').show();
+                        },
+                        complete: function () {
+                            $('#loader').fadeOut("slow");
+                        },
+                        success: function (data) {
+                            mostrarAlert(data.msj, data.status);
+                            location.reload();
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 403) {
+                                window.location.href = "/AccesoDenegado";
+                            }
+                        }
+                    });
+                }
+            })
+        }
+
+        function mostrarAlert(msj, status) {
+            Swal.fire({
+                text: msj,
+                icon: status,
+                showCancelButton: false
+            })
+        }
+    </script>
+}

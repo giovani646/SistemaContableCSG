@@ -1,0 +1,223 @@
+﻿@model SistemaContableCSG.Models.Periodo
+
+@{
+    ViewData["Title"] = "Periodos";
+}
+
+@section Css{
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
+}
+
+<div class="d-flex justify-content-center">
+    <div id="loader" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+</div>
+
+<h3>Periodos</h3>
+<hr class="mt-0" />
+
+@if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarPeriodos.Create)).Succeeded)
+{
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ModalCrear">
+        <i class="fa-solid fa-pen-ruler"></i> Crear Periodo
+    </button>
+    <br />
+    <br />
+}
+<table class="table table-bordered text-md-nowrap table-dark table-striped table-hover" id="datatable" style="width:100%">
+    <thead>
+        <tr>
+            <th class="text-center align-middle">Fecha inicial</th>
+            <th class="text-center align-middle">Fecha final</th>
+            <th class="text-center align-middle">Activo</th>
+            <th class="text-center align-middle">Acciones</th>
+        </tr>
+    </thead>
+</table>
+
+<!-- ModalCrear -->
+<div class="modal" id="ModalCrear" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Creacion de rol</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearForm('FormPeriodoCreate')"></button>
+            </div>
+            <div class="modal-body">
+                <form id="FormPeriodoCreate" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-floating">
+                        <input asp-for="FechaInicial" class="form-control" placeholder=" " />
+                        <label asp-for="FechaInicial" class="control-label"></label>
+                        <span asp-validation-for="FechaInicial" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-floating">
+                        <input asp-for="FechaFinal" class="form-control" placeholder=" " />
+                        <label asp-for="FechaFinal" class="control-label"></label>
+                        <span asp-validation-for="FechaFinal" class="text-danger"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="clearForm('FormPeriodoCreate')"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+                <button type="submit" form="FormPeriodoCreate" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Crear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <partial name="../shared/_ValidationScriptsPartial" />
+
+    <script>
+        $('#datatable').DataTable({
+            "columnDefs": [
+                { "className": "dt-center align-middle", "targets": "_all" }
+                @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarPeriodos.ActivarDesactivar)).Succeeded)
+                {
+                    @:,{ 'targets': [3], 'orderable': false }
+                }
+            ],
+            "scrollX": true,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "@Url.Action("periodosData","Periodo")",
+                "type": "POST",
+                "datatype": "json"
+            },
+            "columns": [
+                { "data": "fechaInicial" },
+                { "data": "fechaFinal" },
+                { "data": "iniciado" }
+                @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarPeriodos.ActivarDesactivar)).Succeeded)
+                {
+                    <text>
+                        ,{
+                            "data": null,
+                            "render": function (data) {
+                                var Button = '';
+
+                                if (data.iniciado == false) {
+                                    Button = `<button class="btn btn-success" onclick="activar('${data.id}', 1)">Iniciar periodo contable</button> `;
+                                }
+                                else {
+                                    Button = `<button class="btn btn-primary" onclick="activar('${data.id}', 2)">Cerrar periodo contable</button> `;
+                                }
+                                return Button;
+                            }
+                        }
+                    </text>
+                }
+            ],
+            "language": {
+                "decimal": ".",
+                "emptyTable": "No hay datos disponibles en la tabla",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                "infoEmpty": "Mostrando del 0 al 0 de un todal de 0 registros",
+                "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "loadingRecords": "Cargando...",
+                "processing": "",
+                "search": "Buscar:",
+                "zeroRecords": "No se encontraron resultados",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                },
+                "aria": {
+                    "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "select": {
+                    "rows": {
+                        "1": "1 fila seleccionada",
+                        "_": "%d filas seleccionadas"
+                    }
+                },
+            }
+        });
+
+        function clearForm(form) {
+            var formulario = document.getElementById(form);
+            formulario.reset();
+            $("input").removeClass('is-invalid');
+            $("input").removeClass('is-valid');
+        }
+
+        $(document).ready(function () {
+            $("#FormPeriodoCreate").submit(function (e) {
+                e.preventDefault();
+
+                if ($("#FormPeriodoCreate").valid()) {
+                    var formData = $(this).serialize();
+
+                    $.ajax({
+                        url: "@Url.Action("Create","Periodo")",
+                        type: "POST",
+                        data: formData,
+                        beforeSend: function () {
+                            $("#loader").css('visibility', 'visible');
+                            $('#loader').show();
+                        },
+                        complete: function () {
+                            $('#loader').fadeOut("slow");
+                        },
+                        success: function (data) {
+                            $("#ModalCrear").modal("hide");
+                            clearForm("FormPeriodoCreate");
+                            mostrarAlert(data.msj, data.status);
+                            $('#datatable').DataTable().ajax.reload();
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 403) {
+                                window.location.href = "/AccesoDenegado";
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        function activar(id, operacion) {
+            $.ajax({
+                url: "@Url.Action("ActivarDesactivar","Periodo")",
+                type: "POST",
+                data: { "id": id, "operacion": operacion },
+                beforeSend: function () {
+                    $("#loader").css('visibility', 'visible');
+                    $('#loader').show();
+                },
+                complete: function () {
+                    $('#loader').fadeOut("slow");
+                },
+                success: function (data) {
+                    mostrarAlert(data.msj, data.status);
+                    location.reload();
+                },
+                error: function (xhr) {
+                    if (xhr.status === 403) {
+                        window.location.href = "/AccesoDenegado";
+                    }
+                }
+            });
+        }
+
+        function mostrarAlert(msj, status) {
+            Swal.fire({
+                text: msj,
+                icon: status,
+                showCancelButton: false
+            })
+        }
+    </script>
+}
+

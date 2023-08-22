@@ -12,8 +12,8 @@ using SistemaContableCSG.Data;
 namespace SistemaContableCSG.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230705220231_inicial")]
-    partial class inicial
+    [Migration("20230821230403_Inicial")]
+    partial class Inicial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -230,6 +230,132 @@ namespace SistemaContableCSG.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("SistemaContableCSG.Models.Asiento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Glosa")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PeriodoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PeriodoId");
+
+                    b.ToTable("Asiento");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Bitacora", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Bitacora");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Cuenta", b =>
+                {
+                    b.Property<string>("Codigo")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Clasificacion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CuentasCodigo")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoSaldo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Codigo");
+
+                    b.HasIndex("CuentasCodigo");
+
+                    b.ToTable("Cuenta");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Periodo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("FechaFinal")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicial")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Iniciado")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Periodo");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Transaccion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int?>("AsientoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CuentaCodigo")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Debe")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("Haber")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AsientoId");
+
+                    b.HasIndex("CuentaCodigo");
+
+                    b.ToTable("Transaccion");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -279,6 +405,63 @@ namespace SistemaContableCSG.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Asiento", b =>
+                {
+                    b.HasOne("SistemaContableCSG.Models.Periodo", "Periodo")
+                        .WithMany("Asientos")
+                        .HasForeignKey("PeriodoId");
+
+                    b.Navigation("Periodo");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Bitacora", b =>
+                {
+                    b.HasOne("SistemaContableCSG.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Cuenta", b =>
+                {
+                    b.HasOne("SistemaContableCSG.Models.Cuenta", "Cuentas")
+                        .WithMany()
+                        .HasForeignKey("CuentasCodigo");
+
+                    b.Navigation("Cuentas");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Transaccion", b =>
+                {
+                    b.HasOne("SistemaContableCSG.Models.Asiento", "Asiento")
+                        .WithMany("Transacciones")
+                        .HasForeignKey("AsientoId");
+
+                    b.HasOne("SistemaContableCSG.Models.Cuenta", "Cuenta")
+                        .WithMany("Transacciones")
+                        .HasForeignKey("CuentaCodigo");
+
+                    b.Navigation("Asiento");
+
+                    b.Navigation("Cuenta");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Asiento", b =>
+                {
+                    b.Navigation("Transacciones");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Cuenta", b =>
+                {
+                    b.Navigation("Transacciones");
+                });
+
+            modelBuilder.Entity("SistemaContableCSG.Models.Periodo", b =>
+                {
+                    b.Navigation("Asientos");
                 });
 #pragma warning restore 612, 618
         }

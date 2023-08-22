@@ -88,6 +88,7 @@ builder.Services.AddAuthentication().AddGoogle(googleOptions =>
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<RolesController>();
+builder.Services.AddScoped<IPeriodoHelper, PeriodoHelper>();
 
 var app = builder.Build();
 

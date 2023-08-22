@@ -17,8 +17,11 @@ namespace SistemaContableCSG.Data
         }
 
         //DbSets declarations
-        //public virtual DbSet<Escuela> Escuela { get; set; } = null!;
-        //public virtual DbSet<Facultad> Facultad { get; set; } = null!;
+        public virtual DbSet<Periodo> Periodo { get; set; } = null!;
+        public virtual DbSet<Asiento> Asiento { get; set; } = null!;
+        public virtual DbSet<Cuenta> Cuenta { get; set; } = null!;
+        public virtual DbSet<Transaccion> Transaccion { get; set; } = null!;
+        public virtual DbSet<Bitacora> Bitacora { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
