@@ -37,8 +37,6 @@
         {
             public const string View = "Permissions.GestionarAsientos.Ver";
             public const string Create = "Permissions.GestionarAsientos.Crear";
-            public const string Edit = "Permissions.GestionarAsientos.Editar";
-            public const string Delete = "Permissions.GestionarAsientos.Eliminar";
         }
 
         public static class GestionarCuentas

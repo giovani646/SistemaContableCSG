@@ -63,7 +63,7 @@
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.CatalogoDeCuentas)).Succeeded)
                                     {
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Periodo" asp-action="Index">Catalogo de cuentas</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="Catalogo">Catalogo de cuentas</a>
                                     }
                                     @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.BalanceGeneral)).Succeeded && periodoIniciado == false)
                                     {

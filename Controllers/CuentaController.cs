@@ -211,5 +211,36 @@ namespace SistemaContableCSG.Controllers
             status = "success";
             return Json(new { msj, status });
         }
+
+        public IActionResult Catalogo()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult catalogoData()
+        {
+            if (!Request.Headers["X-Requested-With"].Equals("XMLHttpRequest"))//comprobar si la solicitud no es ajax
+            {
+                return NotFound();
+            }
+
+            var cuentas = _context.Cuenta.Select(c => new {c.Codigo,c.Nombre}).ToList();
+
+            return Json(new { data = cuentas });
+        }
+
+        [HttpGet]
+        public IActionResult asientoCuentasData()
+        {
+            if (!Request.Headers["X-Requested-With"].Equals("XMLHttpRequest"))//comprobar si la solicitud no es ajax
+            {
+                return NotFound();
+            }
+
+            var cuentas = _context.Cuenta.Where(c => c.Clasificacion == 2).Select(c => new { c.Codigo, c.Nombre }).ToList();
+
+            return Json(new { data = cuentas });
+        }
     }
 }

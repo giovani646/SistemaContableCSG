@@ -42,7 +42,7 @@
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Creacion de rol</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Creacion de periodo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="clearForm('FormPeriodoCreate')"></button>
             </div>
             <div class="modal-body">
@@ -93,8 +93,8 @@
                 "datatype": "json"
             },
             "columns": [
-                { "data": "fechaInicial" },
-                { "data": "fechaFinal" },
+                { "data": "fechaInicial", "render": function (data) { return new Date(data).toISOString().split('T')[0]; } },
+                { "data": "fechaFinal", "render": function (data) { return new Date(data).toISOString().split('T')[0]; } },
                 { "data": "iniciado" }
                 @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarPeriodos.ActivarDesactivar)).Succeeded)
                 {

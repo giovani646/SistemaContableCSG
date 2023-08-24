@@ -54,8 +54,7 @@ namespace SistemaContableCSG.Controllers
             // Total de registros antes de filtrar.
             int TotalRegistros = queryPeriodo.Count();
 
-            queryPeriodo = queryPeriodo.Where(e => string.Concat(e.FechaFinal.ToString(), e.FechaFinal.ToString(), e.Iniciado.ToString()).Contains(ValorBuscado));
-
+            queryPeriodo = queryPeriodo.Where(e => string.Concat(e.FechaInicial.ToString(), e.FechaFinal.ToString(), e.Iniciado.ToString()).Contains(ValorBuscado));
 
             // Total de registros ya filtrados.
             int TotalRegistrosFiltrados = queryPeriodo.Count();

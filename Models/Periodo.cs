@@ -11,8 +11,10 @@ namespace SistemaContableCSG.Models
 
         public int Id { get; set; }
         [Required]
+        [DataType(DataType.Date)]
         public DateTime FechaInicial { get; set; }
         [Required]
+        [DataType(DataType.Date)]
         public DateTime FechaFinal { get; set; }
         [Required]
         public bool Iniciado { get; set; }

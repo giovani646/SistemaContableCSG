@@ -10,8 +10,9 @@ namespace SistemaContableCSG.Models
         }
 
         public int Id { get; set; }
+        [Required(ErrorMessage = "El campo {0} es requerido")]
         public string Glosa { get; set; }
-        [Required]
+        [Required(ErrorMessage = "El campo {0} es requerido")]
         public DateTime Fecha { get; set; }
 
         public virtual Periodo? Periodo { get; set; }
