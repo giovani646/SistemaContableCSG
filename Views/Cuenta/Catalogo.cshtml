@@ -17,6 +17,7 @@
         </tr>
     </thead>
 </table>
+<span id="totalCuentas"></span>
 
 @section Scripts{
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
@@ -39,6 +40,7 @@
     <partial name="../shared/_ValidationScriptsPartial" />
 
     <script>
+        var table =
         $('#datatable').DataTable({
             "columnDefs": [
                 { "className": "dt-center align-middle", "targets": "_all" }
@@ -57,6 +59,7 @@
             "buttons": [
                 {
                     extend: 'pdfHtml5',
+                    download: 'open',
                     text: '<i class="fa fa-file-pdf"></i> PDF',
                     titleAttr: 'Exportar a PDF',
                     className: 'btn btn-danger',
@@ -190,6 +193,9 @@
                     },
                 },
             ],
+            "initComplete": function (settings, json) {
+                $("#totalCuentas").text("Total de cuentas: " + table.data().count());
+            },
             "ajax": {
                 "url": "@Url.Action("catalogoData","Cuenta")",
                 "type": "GET",
@@ -227,7 +233,6 @@
                     }
                 },
             }
-        });
-
+        });        
     </script>
 }
