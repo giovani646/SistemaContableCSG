@@ -46,5 +46,10 @@
             public const string Edit = "Permissions.GestionarCuentas.Editar";
             public const string Delete = "Permissions.GestionarCuentas.Eliminar";
         }
+
+        public static class Bitacora
+        {
+            public const string View = "Permissions.Bitacora.Ver";
+        }
     }
 }

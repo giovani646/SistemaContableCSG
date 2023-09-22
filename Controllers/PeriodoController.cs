@@ -11,10 +11,12 @@ namespace SistemaContableCSG.Controllers
     public class PeriodoController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PeriodoController(ApplicationDbContext dbContext)
+        public PeriodoController(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager)
         {
             _context = dbContext;
+            _userManager = userManager;
         }
 
         // GET: PeriodoController
@@ -101,6 +103,11 @@ namespace SistemaContableCSG.Controllers
 
             periodo.Iniciado = false;
             _context.Periodo.Add(periodo);
+
+            var bitacora = new Bitacora();
+            bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+            bitacora.Accion = "Creo el periodo del: " + periodo.FechaInicial.ToShortDateString() + " al " + periodo.FechaFinal.ToShortDateString() + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+            _context.Bitacora.Add(bitacora);
             _context.SaveChanges();
 
             msj = "El periodo a sido agregado con exito";
@@ -118,7 +125,7 @@ namespace SistemaContableCSG.Controllers
 
             if(periodosCount > 0 && operacion == 1)
             {
-                msj = "Error. No es posible activar el periodo debido a que ya se encuentra un periodo actualmente activo";
+                msj = "Error. No es posible iniciar el periodo debido a que ya se encuentra un periodo actualmente activo";
                 status = "error";
                 return Json(new { msj, status });
             }
@@ -135,8 +142,14 @@ namespace SistemaContableCSG.Controllers
             if (operacion == 1)
             {
                 periodo.Iniciado = true;
+
+                var bitacora = new Bitacora();
+                bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                bitacora.Accion = "Inicio el periodo contable del: " + periodo.FechaInicial.ToShortDateString() + " al " + periodo.FechaFinal.ToShortDateString() + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                _context.Bitacora.Add(bitacora);
                 _context.SaveChanges();
-                msj = "Periodo activado correctamente";
+
+                msj = "Periodo iniciado correctamente";
                 status = "success";
                 return Json(new { msj, status });
 
@@ -144,8 +157,14 @@ namespace SistemaContableCSG.Controllers
             else
             {
                 periodo.Iniciado = false;
+
+                var bitacora = new Bitacora();
+                bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                bitacora.Accion = "Cerro el periodo contable del: " + periodo.FechaInicial.ToShortDateString() + " al " + periodo.FechaFinal.ToShortDateString() + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                _context.Bitacora.Add(bitacora);
                 _context.SaveChanges();
-                msj = "Periodo desactivado correctamente";
+
+                msj = "Periodo cerrado correctamente";
                 status = "success";
                 return Json(new { msj, status });
             }

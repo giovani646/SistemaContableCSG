@@ -1,8 +1,93 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@section Css{
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
+}
+
+@if ((await AuthorizationService.AuthorizeAsync(User, Permissions.Bitacora.View)).Succeeded)
+{
+    <div class="text-center">
+        <h1>Bitacora</h1>
+    </div>
+    <br />
+    <table class="table table-bordered text-md-nowrap table-dark table-striped table-hover" id="datatable" style="width:100%">
+        <thead>
+            <tr>
+                <th class="text-center align-middle">Usuario</th>
+                <th class="text-center align-middle">Email</th>
+                <th class="text-center align-middle">Accion</th>
+            </tr>
+        </thead>
+    </table>
+}
+else
+{
+    <div class="text-center">
+        <h1>Bienvenido</h1>
+    </div>
+}
+
+@section Scripts{
+    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.Bitacora.View)).Succeeded)
+    {
+        <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+        <partial name="../shared/_ValidationScriptsPartial" />
+    }
+
+    <script>
+        @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.Bitacora.View)).Succeeded)
+        {
+            <text>
+                $('#datatable').DataTable({
+                    "columnDefs": [
+                        { "className": "dt-center align-middle", "targets": "_all" }
+                    ],
+                    "scrollX": true,
+                    "processing": true,
+                    "serverSide": true,
+                    "ajax": {
+                        "url": "@Url.Action("bitacoraData","Home")",
+                        "type": "POST",
+                        "datatype": "json"
+                    },
+                    "columns": [
+                        { "data": "user", "render": function (data) { return data.nombre; } },
+                        { "data": "user", "render": function (data) { return data.email; } },
+                        { "data": "accion" }
+                    ],
+                    "language": {
+                        "decimal": ".",
+                        "emptyTable": "No hay datos disponibles en la tabla",
+                        "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        "infoEmpty": "Mostrando del 0 al 0 de un todal de 0 registros",
+                        "infoFiltered": "(Filtrado de _MAX_ registros totales)",
+                        "lengthMenu": "Mostrar _MENU_ registros por página",
+                        "loadingRecords": "Cargando...",
+                        "processing": "",
+                        "search": "Buscar:",
+                        "zeroRecords": "No se encontraron resultados",
+                        "paginate": {
+                            "first": "Primero",
+                            "last": "Último",
+                            "next": "Siguiente",
+                            "previous": "Anterior"
+                        },
+                        "aria": {
+                            "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                            "sortDescending": ": Activar para ordenar la columna de manera descendente"
+                        },
+                        "select": {
+                            "rows": {
+                                "1": "1 fila seleccionada",
+                                "_": "%d filas seleccionadas"
+                            }
+                        },
+                    }
+                });
+            </text>
+        }
+    </script>
+}

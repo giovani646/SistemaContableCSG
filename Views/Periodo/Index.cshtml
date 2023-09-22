@@ -95,7 +95,17 @@
             "columns": [
                 { "data": "fechaInicial", "render": function (data) { return new Date(data).toISOString().split('T')[0]; } },
                 { "data": "fechaFinal", "render": function (data) { return new Date(data).toISOString().split('T')[0]; } },
-                { "data": "iniciado" }
+                {
+                    "data": "iniciado",
+                    "render": function (data) {
+                        if (data == true) {
+                            return `<span class="badge bg-success">${data}</span> `;
+                        }
+                        else {
+                            return `<span class="badge bg-secondary">${data}</span> `;
+                        }
+                    }
+                }
                 @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GestionarPeriodos.ActivarDesactivar)).Succeeded)
                 {
                     <text>
