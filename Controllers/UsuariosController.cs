@@ -124,6 +124,12 @@ namespace SistemaContableCSG.Controllers
                     await _userManager.AddToRolesAsync(user, roles);
                 }
 
+                var bitacora = new Bitacora();
+                bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                bitacora.Accion = "Creo el usuario con email: " + user.Email + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                _context.Bitacora.Add(bitacora);
+                _context.SaveChanges();
+
                 msj = "Se creo el usuario correctamente, se a enviado un correo para confirmar la direccion de correo electronico";
                 status = "success";
                 return Json(new { msj,status });
@@ -231,6 +237,12 @@ namespace SistemaContableCSG.Controllers
                     {
                         msj = "El usuario a sido actualizado correctamente";
                     }
+                    var bitacora = new Bitacora();
+                    bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                    bitacora.Accion = "Modifico el usuario con email (antes de modificar): " + oldemail + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                    _context.Bitacora.Add(bitacora);
+                    _context.SaveChanges();
+
                     status = "success";
                 }
                 else
@@ -260,6 +272,12 @@ namespace SistemaContableCSG.Controllers
                 IdentityResult result = await _userManager.DeleteAsync(user);
                 if (result.Succeeded)
                 {
+                    var bitacora = new Bitacora();
+                    bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                    bitacora.Accion = "Elimino el usuario con email: " + user.Email + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                    _context.Bitacora.Add(bitacora);
+                    _context.SaveChanges();
+
                     msj = "Se elimino al usuario correctamente";
                     status = "success";
                 }
@@ -306,10 +324,22 @@ namespace SistemaContableCSG.Controllers
                     switch (operacion)
                     {
                         case 1:
+                            var bitacora = new Bitacora();
+                            bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                            bitacora.Accion = "Bloqueo al usuario con email: " + user.Email + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                            _context.Bitacora.Add(bitacora);
+                            _context.SaveChanges();
+
                             msj = "El usuario a sido bloqueado correctamente";
                             status = "success";
                             break;
                         case 2:
+                            var bitacoraD = new Bitacora();
+                            bitacoraD.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                            bitacoraD.Accion = "Desbloqueo al usuario con email: " + user.Email + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                            _context.Bitacora.Add(bitacoraD);
+                            _context.SaveChanges();
+
                             msj = "El usuario a sido desbloqueado correctamente";
                             status = "success";
                             break;

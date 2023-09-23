@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace SistemaContableCSG.Controllers
     public class CuentaController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CuentaController(ApplicationDbContext dbContext)
+        public CuentaController(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager)
         {
             _context = dbContext;
+            _userManager = userManager;
         }
 
         // GET: CuentaController
@@ -114,6 +117,12 @@ namespace SistemaContableCSG.Controllers
             }
 
             _context.Cuenta.Add(model.Cuenta); //guardar los datos de la cuenta y el objeto de la cuenta padre en la propiedad model.Cuenta.Cuentas (autereferencia del modelo), asp.net core detecta que el solo que debe guardar unicamente la pk en el campo CuentaCodigo
+
+            var bitacora = new Bitacora();
+            bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+            bitacora.Accion = "Creo la cuenta con codigo: " + model.Cuenta.Codigo + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+            _context.Bitacora.Add(bitacora);
+
             _context.SaveChanges();
             msj = "La cuenta a sido creada correctamente";
             status = "success";
@@ -169,7 +178,6 @@ namespace SistemaContableCSG.Controllers
                 return Json(new { msj, status });
             }
 
-            //cuenta.Codigo = model.Cuenta.Codigo;
             cuenta.Nombre = model.Cuenta.Nombre;
             cuenta.Clasificacion = model.Cuenta.Clasificacion;
 
@@ -182,6 +190,12 @@ namespace SistemaContableCSG.Controllers
             cuenta.Tipo = model.Cuenta.Tipo;
             cuenta.TipoSaldo = model.Cuenta.TipoSaldo;
             _context.Cuenta.Update(cuenta);
+
+            var bitacora = new Bitacora();
+            bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+            bitacora.Accion = "Modifico la cuenta con codigo: " + cuenta.Codigo + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+            _context.Bitacora.Add(bitacora);
+
             _context.SaveChanges();
             msj = "La cuenta a sido actualizada correctamente";
             status = "success";
@@ -206,6 +220,12 @@ namespace SistemaContableCSG.Controllers
             }
 
             _context.Cuenta.Remove(cuenta);
+
+            var bitacora = new Bitacora();
+            bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+            bitacora.Accion = "Elimino la cuenta con codigo: " + cuenta.Codigo + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+            _context.Bitacora.Add(bitacora);
+
             _context.SaveChanges();
             msj = "La cuenta a sido eliminada correctamente";
             status = "success";

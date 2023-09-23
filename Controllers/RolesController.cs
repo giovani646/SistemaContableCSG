@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Reflection;
 using System.Data;
 using Microsoft.AspNetCore.Authorization;
+using SistemaContableCSG.Models;
 
 namespace SistemaContableCSG.Controllers
 {
@@ -16,12 +17,14 @@ namespace SistemaContableCSG.Controllers
     {
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
         public string AdminRole { get; } = "Admin";
         
-        public RolesController(ApplicationDbContext context, RoleManager<IdentityRole> roleManager)
+        public RolesController(ApplicationDbContext context, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
             _roleManager = roleManager;
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: RolesController
@@ -141,6 +144,12 @@ namespace SistemaContableCSG.Controllers
                 return Json(new { msj, status });
             }
 
+            var bitacora = new Bitacora();
+            bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+            bitacora.Accion = "Creo el rol: " + role.Name + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+            _context.Bitacora.Add(bitacora);
+            _context.SaveChanges();
+
             msj = "El rol se creo correcamente";
             status = "success";
             
@@ -204,6 +213,12 @@ namespace SistemaContableCSG.Controllers
                 await _roleManager.AddClaimAsync(rol, new Claim(CustomClaimTypes.Permission, item));
             }
 
+            var bitacora = new Bitacora();
+            bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+            bitacora.Accion = "Modifico el rol: " + rol.Name + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+            _context.Bitacora.Add(bitacora);
+            _context.SaveChanges();
+
             msj = "El rol a sido actualizado correctamente";
             status = "success";
 
@@ -259,6 +274,12 @@ namespace SistemaContableCSG.Controllers
 
             if (result.Succeeded)
             {
+                var bitacora = new Bitacora();
+                bitacora.User = _userManager.GetUserAsync(HttpContext.User).Result;
+                bitacora.Accion = "Elimino el rol: " + rol.Name + " en la siguiente fecha: " + DateTime.Now.ToShortDateString();
+                _context.Bitacora.Add(bitacora);
+                _context.SaveChanges();
+
                 msj = "Se elimino el rol correctamente";
                 status = "success";
             }
