@@ -31,6 +31,8 @@
             public const string View = "Permissions.GenerarReporte.Ver";
             public const string CatalogoDeCuentas = "Permissions.GenerarReporte.CatalogoDeCuentas";
             public const string BalanceGeneral = "Permissions.GenerarReporte.BalanceGeneral";
+            public const string TrasactTipoSald = "Permissions.GenerarReporte.TrasactTipoSald";
+            public const string LibroDiario = "Permissions.GenerarReporte.LibroDiario";
         }
 
         public static class GestionarAsientos

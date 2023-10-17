@@ -1,0 +1,51 @@
+﻿@{
+    ViewData["Title"] = "Generar Reporte";
+}
+
+<div class="card">
+    <div class="card-header text-center">
+        Generacion de reporte
+    </div>
+    <div class="card-body">
+        <form id="form" asp-controller="Reporte" asp-action="Generar" method="post">
+            <label for="reporte" class="form-label">Reporte</label>
+            <input class="form-control mb-3" type="text" id="reporte" readonly value="@ViewData["reporte"]" name="reporte">
+            <label for="finicial" class="form-label">Fecha inicial</label>
+            <input class="form-control mb-3" type="date" id="finicial" name="finicial" required>
+            <label for="ffinal" class="form-label">Fecha final</label>
+            <input class="form-control" type="date" id="ffinal" name="ffinal" required>
+        </form>
+    </div>
+    <div class="card-footer">
+        <button id="btnForm" type="button" class="btn btn-primary">Generar</button>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.getElementById("btnForm").addEventListener("click", () => {
+            let finicial = document.getElementById("finicial").value;
+            let ffinal = document.getElementById("ffinal").value;
+            let form = document.getElementById("form");
+
+            if (!form.checkValidity()) {
+                Swal.fire({
+                    icon: 'error',
+                    text: 'Los campos fecha inicial y fecha final son obligatorios',
+                });
+                return;
+            }
+
+            if (finicial > ffinal) {
+                Swal.fire({
+                    icon: 'error',
+                    text: 'La fecha inicial debe ser mayor que la fecha final',
+                });
+                return;
+            }
+            form.submit();
+        });
+    </script>
+}

@@ -56,18 +56,26 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Asiento" asp-action="Index"><i class="fa-solid fa-money-bill-transfer"></i> Gestionar asientos</a>
                             </li>
                         }
-                        @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.View)).Succeeded)
+                        @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.View)).Succeeded && periodoIniciado == false)
                         {
                             <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle text-dark" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre><i class="fa-solid fa-book"></i> Generar</a>
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle text-dark" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre><i class="fa-solid fa-book"></i> Generar Reporte</a>
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.CatalogoDeCuentas)).Succeeded)
                                     {
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="Catalogo">Catalogo de cuentas</a>
                                     }
-                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.BalanceGeneral)).Succeeded && periodoIniciado == false)
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.BalanceGeneral)).Succeeded)
                                     {
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Periodo" asp-action="Index">Balance general</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Reporte" asp-action="Index" asp-route-reporte="Balance general">Balance general</a>
+                                    }
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.LibroDiario)).Succeeded)
+                                    {
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Reporte" asp-action="Index" asp-route-reporte="Libro diario">Libro diario</a>
+                                    }
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, Permissions.GenerarReporte.TrasactTipoSald)).Succeeded)
+                                    {
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Reporte" asp-action="Index" asp-route-reporte="Transacciones por tipo de saldo">Transacciones por tipo de saldo</a>
                                     }
                                 </div>
                             </li>
