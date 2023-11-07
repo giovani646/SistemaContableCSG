@@ -10,7 +10,7 @@
             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                 <a class="dropdown-item text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"><i class="fa-solid fa-id-card"></i> Perfil</a>
                 <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                    <button type="submit" class="dropdown-item text-dark"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    <button type="submit" class="dropdown-item text-dark"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesion</button>
                 </form>
             </div>
      </li>
@@ -18,10 +18,10 @@
 else
 {
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Registro</a>
     </li>
     <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a>
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login"><i class="fa-solid fa-arrow-right-to-bracket"></i> Iniciar de sesion</a>
     </li>
 }
 </ul>
