@@ -8,12 +8,25 @@
     </div>
     <div class="card-body">
         <form id="form" asp-controller="Reporte" asp-action="Generar" method="post">
-            <label for="reporte" class="form-label">Reporte</label>
-            <input class="form-control mb-3" type="text" id="reporte" readonly value="@ViewData["reporte"]" name="reporte">
-            <label for="finicial" class="form-label">Fecha inicial</label>
-            <input class="form-control mb-3" type="date" id="finicial" name="finicial" required>
-            <label for="ffinal" class="form-label">Fecha final</label>
-            <input class="form-control" type="date" id="ffinal" name="ffinal" required>
+            @{
+                String tipo = Convert.ToString(ViewData["reporte"]);
+                if (tipo == "Libro diario")
+                {
+                    <label for="reporte" class="form-label">Reporte</label>
+                    <input class="form-control mb-3" type="text" id="reporte" readonly value="@ViewData["reporte"]" name="reporte">
+                    <label for="finicial" class="form-label">Fecha</label>
+                    <input class="form-control mb-3" type="date" id="finicial" name="finicial" required>
+                }
+                else
+                {
+                    <label for="reporte" class="form-label">Reporte</label>
+                    <input class="form-control mb-3" type="text" id="reporte" readonly value="@ViewData["reporte"]" name="reporte">
+                    <label for="finicial" class="form-label">Fecha inicial</label>
+                    <input class="form-control mb-3" type="date" id="finicial" name="finicial" required>
+                    <label for="ffinal" class="form-label">Fecha final</label>
+                    <input class="form-control" type="date" id="ffinal" name="ffinal" required>
+                }
+            }
         </form>
     </div>
     <div class="card-footer">
@@ -26,26 +39,35 @@
 
     <script>
         document.getElementById("btnForm").addEventListener("click", () => {
-            let finicial = document.getElementById("finicial").value;
-            let ffinal = document.getElementById("ffinal").value;
-            let form = document.getElementById("form");
+            let reporte = document.getElementById("reporte").value;
 
-            if (!form.checkValidity()) {
-                Swal.fire({
-                    icon: 'error',
-                    text: 'Los campos fecha inicial y fecha final son obligatorios',
-                });
-                return;
+            if (reporte == "Libro diario") {
+                let finicial = document.getElementById("finicial").value;
+                let form = document.getElementById("form");
+                form.submit();
             }
+            else {
+                let finicial = document.getElementById("finicial").value;
+                let ffinal = document.getElementById("ffinal").value;
+                let form = document.getElementById("form");
 
-            if (finicial > ffinal) {
-                Swal.fire({
-                    icon: 'error',
-                    text: 'La fecha inicial debe ser mayor que la fecha final',
-                });
-                return;
+                if (!form.checkValidity()) {
+                    Swal.fire({
+                        icon: 'error',
+                        text: 'Los campos fecha inicial y fecha final son obligatorios',
+                    });
+                    return;
+                }
+
+                if (finicial > ffinal) {
+                    Swal.fire({
+                        icon: 'error',
+                        text: 'La fecha inicial debe ser mayor que la fecha final',
+                    });
+                    return;
+                }
+                form.submit();
             }
-            form.submit();
         });
     </script>
 }
